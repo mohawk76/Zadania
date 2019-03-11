@@ -35,7 +35,8 @@ class Snake(object):
         self.__body.append(SnakeBody(self.__body[-1].getPosition()))
 
     def incSpeed(self):
-        self.__speed += 1
+        if self.__speed < 15:
+            self.__speed += 1
 
     def getPosition(self):
         return [part.getPosition() for part in self.__body]
