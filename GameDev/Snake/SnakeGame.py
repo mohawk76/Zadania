@@ -4,12 +4,23 @@ import threading
 from time import sleep
 import keyboard
 import os
+from enum import Enum
+
+class Difficulty(Enum):
+    EASY = 1
+    NORMAL = 2
+    HARD = 3
+    
+    def __int__(self):
+        return self.value
 
 class SnakeGame(object):
     def __init__(self):
         self.__size = [13,13]
         self.__snake = Snake(self.__getCenterCoord())
         self.__exit = False
+        self.__score = 0
+        self.__difficulty = Difficulty.EASY
 
     def start(self):
         self.__generateFruit()
@@ -22,24 +33,26 @@ class SnakeGame(object):
         while not self.__exit:
             os.system('cls')
             self.__snake.move()
+            self.__detectCollision()
             self.__showBoard()
             sleep(1/self.__snake.getSpeed())
 
     def __getInput(self):
         while not self.__exit:
-            if keyboard.is_pressed('up'):
+            if keyboard.is_pressed('up') and self.__snake.getDirection() != Direction.DOWN:
                 self.__snake.setDirection(Direction.UP)
-            elif keyboard.is_pressed('down'):
+            elif keyboard.is_pressed('down') and self.__snake.getDirection() != Direction.UP:
                 self.__snake.setDirection(Direction.DOWN)
-            elif keyboard.is_pressed('left'):
+            elif keyboard.is_pressed('left') and self.__snake.getDirection() != Direction.RIGHT:
                 self.__snake.setDirection(Direction.LEFT)
-            elif keyboard.is_pressed('right'):
+            elif keyboard.is_pressed('right') and self.__snake.getDirection() != Direction.LEFT:
                 self.__snake.setDirection(Direction.RIGHT)
             elif keyboard.is_pressed('esc'):
                 self.__exit=True
             sleep(0.01)
 
     def __showBoard(self):
+        print("Score: {}".format(self.__score))
         for x in range(0, self.__size[1]+1):
             if x==0:
                 print('+', end='=', flush=True)
@@ -61,8 +74,6 @@ class SnakeGame(object):
                 x+=1
             print('|', end='', flush=True)
             print("")
-            y+=1
-            x=0
 
         for x in range(0, self.__size[1] + 1):
             if x==0:
@@ -87,6 +98,11 @@ class SnakeGame(object):
 
         self.__fruit = fruit(coord)
 
+    def __detectCollision(self):
+        if self.__snake.getPosition()[0]==self.__fruit.getPosition():
+            self.__score+=10*int(self.__difficulty)
+            self.__snake.incLength()
+            self.__generateFruit()
 
 class fruit(object):
     def __init__(self, position):
