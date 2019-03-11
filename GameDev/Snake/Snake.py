@@ -9,7 +9,7 @@ class Direction(Enum):
 class Snake(object):
     def __init__(self, position):
         self.__length = 3
-        self.__speed = 1
+        self.__speed = 3
         self.__direction = Direction.RIGHT
 
         x=position[1]
