@@ -26,7 +26,7 @@ class SnakeGame(object):
             sleep(1/self.__snake.getSpeed())
 
     def __getInput(self):
-        while True:
+        while not self.__exit:
             if keyboard.is_pressed('up'):
                 self.__snake.setDirection(Direction.UP)
             elif keyboard.is_pressed('down'):
@@ -41,7 +41,12 @@ class SnakeGame(object):
 
     def __showBoard(self):
         for x in range(0, self.__size[1]+1):
-            print('=', end='=', flush=True)
+            if x==0:
+                print('+', end='=', flush=True)
+            elif x==self.__size[1]:
+                print('=', end='+', flush=True)
+            else:
+                print('=', end='=', flush=True)
         print("")
  
         for y in range(self.__size[0]):
@@ -60,7 +65,12 @@ class SnakeGame(object):
             x=0
 
         for x in range(0, self.__size[1] + 1):
-            print('=', end='=', flush=True)
+            if x==0:
+                print('+', end='=', flush=True)
+            elif x==self.__size[1]:
+                print('=', end='+', flush=True)
+            else:
+                print('=', end='=', flush=True)
         print("")
 
     def __getRandomCoord(self):
