@@ -27,6 +27,9 @@ class Snake(object):
     def getLength(self):
         return self.__length
 
+    def getSpeed(self):
+        return self.__speed
+
     def incLength(self):
         self.__length += 1
         self.__body.append(SnakeBody(self.__body[-1].getPosition()))
@@ -34,8 +37,11 @@ class Snake(object):
     def incSpeed(self):
         self.__speed += 1
 
+    def getPosition(self):
+        return [part.getPosition() for part in self.__body]
+
     def move(self):
-        nextPos = self.__body[0]
+        nextPos = self.__body[0].getPosition()
         for part in self.__body:
             #głowa
             if part == self.__body[0]:
@@ -46,9 +52,10 @@ class Snake(object):
                 elif self.__direction==Direction.DOWN:
                     coords[0] += 1
                 elif self.__direction==Direction.LEFT:
-                    coords[1] += 1
-                elif self.__direction==Direction.RIGHT:
                     coords[1] -= 1
+                elif self.__direction==Direction.RIGHT:
+                    coords[1] += 1
+                part.setPosition(coords)
             #reszta elementów ciała
             else:
                 temp = part.getPosition()
