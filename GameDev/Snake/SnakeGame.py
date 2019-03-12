@@ -21,7 +21,7 @@ class SnakeGame(object):
         self.__fruit = fruit([-1,-1])
         self.__exit = False
         self.__score = 0
-        self.__difficulty = Difficulty.EASY
+        self.__difficulty = Difficulty.NORMAL
 
     def start(self):
         self.__generateFruit()
@@ -104,6 +104,8 @@ class SnakeGame(object):
             self.__score+=10*int(self.__difficulty)
             self.__snake.incLength()
             self.__generateFruit()
+            if self.__difficulty is Difficulty.NORMAL and self.__snake.getSpeed() < 9:
+                self.__snake.incSpeed()
         elif self.__snake.getPosition()[0] in self.__snake.getPosition()[1:]:
             self.__exit = True
         elif self.__snake.getPosition()[0][0] < 0 or self.__snake.getPosition()[0][0]>self.__size[0]-1:

@@ -11,7 +11,7 @@ class Snake(object):
         self.__length = 3
         self.__speed = 3
         self.__direction = Direction.RIGHT
-
+        self.__directionChanged = False
         x=position[1]
         y=position[0]
 
@@ -22,7 +22,9 @@ class Snake(object):
         return self.__direction
 
     def setDirection(self, direction):
-        self.__direction = direction
+        if self.__directionChanged is False:
+            self.__direction = direction
+            self.__directionChanged = True
 
     def getLength(self):
         return self.__length
@@ -42,6 +44,7 @@ class Snake(object):
         return [part.getPosition() for part in self.__body]
 
     def move(self):
+        self.__directionChanged = False
         nextPos = self.__body[0].getPosition()
         for part in self.__body:
             #głowa
