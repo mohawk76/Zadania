@@ -18,6 +18,7 @@ class SnakeGame(object):
     def __init__(self):
         self.__size = [13,13]
         self.__snake = Snake(self.__getCenterCoord())
+        self.__fruit = fruit([-1,-1])
         self.__exit = False
         self.__score = 0
         self.__difficulty = Difficulty.EASY
@@ -96,13 +97,19 @@ class SnakeGame(object):
         while coord in self.__snake.getPosition():
             coord = self.__getRandomCoord()
 
-        self.__fruit = fruit(coord)
+        self.__fruit.setPosition(coord)
 
     def __detectCollision(self):
         if self.__snake.getPosition()[0]==self.__fruit.getPosition():
             self.__score+=10*int(self.__difficulty)
             self.__snake.incLength()
             self.__generateFruit()
+        elif self.__snake.getPosition()[0] in self.__snake.getPosition()[1:]:
+            self.__exit = True
+        elif self.__snake.getPosition()[0][0] < 0 or self.__snake.getPosition()[0][0]>self.__size[0]-1:
+            self.__exit = True
+        elif self.__snake.getPosition()[0][1] < 0 or self.__snake.getPosition()[0][1]>self.__size[1]-1:
+            self.__exit = True
 
 class fruit(object):
     def __init__(self, position):
