@@ -3,8 +3,10 @@ import random
 import threading
 from time import sleep
 import keyboard
-import os
 from enum import Enum
+
+def move_cursor(x, y):
+    print("\x1b[{};{}H".format(y + 1, x + 1), end='')
 
 class Difficulty(Enum):
     EASY = 1
@@ -15,8 +17,8 @@ class Difficulty(Enum):
         return self.value
 
 class SnakeGame(object):
-    def __init__(self):
-        self.__size = [13,13]
+    def __init__(self, x, y):
+        self.__size = [y,x]
         self.__snake = Snake(self.__getCenterCoord())
         self.__fruit = fruit([-1,-1])
         self.__exit = False
@@ -32,7 +34,6 @@ class SnakeGame(object):
         input = threading.Thread(target=self.__getInput)
         input.start()
         while not self.__exit:
-            os.system('cls')
             self.__snake.move()
             self.__detectCollision()
             self.__showBoard()
@@ -53,37 +54,38 @@ class SnakeGame(object):
             sleep(0.01)
 
     def __showBoard(self):
-        print("Score: {}".format(self.__score))
+        move_cursor(0,0)
+        board = "Score: {}\n".format(self.__score)
         for x in range(0, self.__size[1]+1):
             if x==0:
-                print('+', end='=', flush=True)
+                board += "+="
             elif x==self.__size[1]:
-                print('=', end='+', flush=True)
+                board += "=+"
             else:
-                print('=', end='=', flush=True)
-        print("")
+                board += "=="
+        board += "\n"
  
         for y in range(self.__size[0]):
-            print('|', end='', flush=True)
+            board += "|"
             for x in range(self.__size[1]):
                 if [y,x] == self.__fruit.getPosition():
-                    print('*', end=' ', flush=True)
+                    board += "* "
                 elif [y,x] in self.__snake.getPosition():
-                    print('o', end=' ', flush=True)
+                    board += "o "
                 else:
-                    print(' ', end=' ', flush=True)
-                x+=1
-            print('|', end='', flush=True)
-            print("")
+                    board += "  "
+            board += "|\n"
 
         for x in range(0, self.__size[1] + 1):
             if x==0:
-                print('+', end='=', flush=True)
+                board += "+="
             elif x==self.__size[1]:
-                print('=', end='+', flush=True)
+                board += "=+"
             else:
-                print('=', end='=', flush=True)
-        print("")
+                board += "=="
+        board += "\n"
+        print("\033[0;0H"+board)
+        return 2*len(board)
 
     def __getRandomCoord(self):
         return [random.randint(0,self.__size[0]-1), random.randint(0,self.__size[1]-1)]

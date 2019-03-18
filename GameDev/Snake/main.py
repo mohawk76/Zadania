@@ -1,5 +1,8 @@
 from SnakeGame import SnakeGame
+from colorama import init
 
-test = SnakeGame()
+init()
+test = SnakeGame(15,15)
 test.start()
+
 
