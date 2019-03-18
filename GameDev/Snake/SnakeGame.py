@@ -1,6 +1,7 @@
 from Snake import Snake, Direction
 import random
 import threading
+import os
 from time import sleep
 import keyboard
 from enum import Enum
@@ -16,7 +17,7 @@ class Difficulty(Enum):
     def __int__(self):
         return self.value
 
-class SnakeGame(object):
+class SnakeGame:
     def __init__(self, x, y):
         self.__size = [y,x]
         self.__snake = Snake(self.__getCenterCoord())
@@ -26,6 +27,7 @@ class SnakeGame(object):
         self.__difficulty = Difficulty.NORMAL
 
     def start(self):
+        os.system("cls")
         self.__generateFruit()
         self.__showBoard()
         self.__loop()
@@ -38,6 +40,7 @@ class SnakeGame(object):
             self.__detectCollision()
             self.__showBoard()
             sleep(1/self.__snake.getSpeed())
+        self.__gameOver()
 
     def __getInput(self):
         while not self.__exit:
@@ -85,7 +88,6 @@ class SnakeGame(object):
                 board += "=="
         board += "\n"
         print("\033[0;0H"+board)
-        return 2*len(board)
 
     def __getRandomCoord(self):
         return [random.randint(0,self.__size[0]-1), random.randint(0,self.__size[1]-1)]
@@ -114,6 +116,18 @@ class SnakeGame(object):
             self.__exit = True
         elif self.__snake.getPosition()[0][1] < 0 or self.__snake.getPosition()[0][1]>self.__size[1]-1:
             self.__exit = True
+
+    def __gameOver(self):
+        os.system("cls")
+        print("===GAME OVER!===\n\n")
+        print("   "+self.__difficulty.name)
+        print("   Score: "+str(self.__score)+"\n\n")
+        os.system("pause")
+
+    def __loadScores(self):
+        jsonScores = open("score.json", "r").read()
+
+
 
 class fruit(object):
     def __init__(self, position):

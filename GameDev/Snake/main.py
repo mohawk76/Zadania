@@ -1,8 +1,18 @@
-from SnakeGame import SnakeGame
-from colorama import init
+from SnakeGame import SnakeGame, move_cursor
+import threading
+from time import sleep
+import keyboard
+import colorama
 
-init()
+colorama.init()
+
+print("======Snake======")
+print()
+print("\tPlay!")
+print("\tOptions")
+print("\tExit")
+print()
+print("=================")
+
 test = SnakeGame(15,15)
 test.start()
-
-
