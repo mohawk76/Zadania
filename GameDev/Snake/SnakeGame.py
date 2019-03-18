@@ -1,13 +1,17 @@
 from Snake import Snake, Direction
+from time import sleep
+from enum import Enum
 import random
 import threading
 import os
-from time import sleep
+import json
 import keyboard
-from enum import Enum
 
 def move_cursor(x, y):
     print("\x1b[{};{}H".format(y + 1, x + 1), end='')
+
+def getScoresKey(e):
+    return e["Score"]
 
 class Difficulty(Enum):
     EASY = 1
@@ -25,22 +29,34 @@ class SnakeGame:
         self.__exit = False
         self.__score = 0
         self.__difficulty = Difficulty.NORMAL
+        self.__topScore = []
 
     def start(self):
         os.system("cls")
+        self.__loadScores()
         self.__generateFruit()
         self.__showBoard()
         self.__loop()
 
     def __loop(self):
-        input = threading.Thread(target=self.__getInput)
-        input.start()
+        inputThread = threading.Thread(target=self.__getInput)
+        inputThread.start()
         while not self.__exit:
             self.__snake.move()
             self.__detectCollision()
             self.__showBoard()
             sleep(1/self.__snake.getSpeed())
+
         self.__gameOver()
+        
+        playerName = ""
+        if self.__checkQualifyTopScore():
+            playerName = input("PlayerName: ")
+            self.__updateScores(playerName)
+            self.__saveScores()
+        
+        self.__displayTopScores()
+            
 
     def __getInput(self):
         while not self.__exit:
@@ -58,6 +74,7 @@ class SnakeGame:
 
     def __showBoard(self):
         move_cursor(0,0)
+
         board = "Score: {}\n".format(self.__score)
         for x in range(0, self.__size[1]+1):
             if x==0:
@@ -87,7 +104,7 @@ class SnakeGame:
             else:
                 board += "=="
         board += "\n"
-        print("\033[0;0H"+board)
+        print(board)
 
     def __getRandomCoord(self):
         return [random.randint(0,self.__size[0]-1), random.randint(0,self.__size[1]-1)]
@@ -119,14 +136,50 @@ class SnakeGame:
 
     def __gameOver(self):
         os.system("cls")
-        print("===GAME OVER!===\n\n")
-        print("   "+self.__difficulty.name)
+        print("======GAME OVER!======\n\n")
+        print("   Difficulty: "+self.__difficulty.name)
         print("   Score: "+str(self.__score)+"\n\n")
         os.system("pause")
+        os.system("cls")
 
     def __loadScores(self):
-        jsonScores = open("score.json", "r").read()
+        if os.path.isfile("data/score"+self.__difficulty.name+".json"):
+            with open("data/score"+self.__difficulty.name+".json", "r") as jsonScores:
+                self.__topScore = json.load(jsonScores)
 
+    def __saveScores(self):
+         with open("data/score"+self.__difficulty.name+".json", "w") as scoresFile:
+             scoresFile.write(json.dumps(self.__topScore))
+
+    def __checkQualifyTopScore(self):
+        if self.__score is 0:
+            return False
+
+        if(len(self.__topScore)<10):
+            return True
+        
+        for score in self.__topScore:
+            if score["Score"]<=self.__score:
+                return True
+        return False
+
+    def __updateScores(self, playerName):
+        self.__topScore.append({"Name": playerName, "Score": self.__score})
+        self.__topScore.sort(key=getScoresKey, reverse=True)
+
+        while len(self.__topScore)>10:
+            self.__topScore.pop()
+
+    def __displayTopScores(self):
+        os.system("cls")
+        i=1
+
+        print("======"+self.__difficulty.name+" Top 10======\n")
+        for score in self.__topScore:
+            print(str(i)+". " + score["Name"] + "    " + str(score["Score"]))
+            i+=1
+        print()
+        os.system("pause")
 
 
 class fruit(object):
