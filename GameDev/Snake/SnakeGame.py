@@ -1,14 +1,13 @@
 from Snake import Snake, Direction
+from TerminalFormat import move_cursor
 from time import sleep
+from colorama import Fore
 from enum import Enum
 import random
 import threading
 import os
 import json
 import keyboard
-
-def move_cursor(x, y):
-    print("\x1b[{};{}H".format(y + 1, x + 1), end='')
 
 def getScoresKey(e):
     return e["Score"]
@@ -17,23 +16,40 @@ class Difficulty(Enum):
     EASY = 1
     NORMAL = 2
     HARD = 3
+    Custom = 4
     
     def __int__(self):
         return self.value
 
 class SnakeGame:
-    def __init__(self, x, y):
-        self.__size = [y,x]
+    def __init__(self):
+        self.__size = [12, 12]
+        self.__fruitsQuantity = 0
+        self.__difficulty = Difficulty.NORMAL
+        self.__topScore = []
+        self.__loadScores()
+
+    def getBoardSize(self):
+        return self.__size
+    
+    def setBoardSize(self, width, heigth):
+        self.__size = [heigth, width]
+
+    def getDifficulty(self):
+        return self.__difficulty
+
+    def setDifficulty(self, difficulty):
+        self.__difficulty = difficulty
+        self.__loadScores()
+
+    def start(self):
         self.__snake = Snake(self.__getCenterCoord())
         self.__fruit = fruit([-1,-1])
         self.__exit = False
         self.__score = 0
-        self.__difficulty = Difficulty.NORMAL
-        self.__topScore = []
 
-    def start(self):
         os.system("cls")
-        self.__loadScores()
+
         self.__generateFruit()
         self.__showBoard()
         self.__loop()
@@ -41,6 +57,7 @@ class SnakeGame:
     def __loop(self):
         inputThread = threading.Thread(target=self.__getInput)
         inputThread.start()
+
         while not self.__exit:
             self.__snake.move()
             self.__detectCollision()
@@ -55,7 +72,7 @@ class SnakeGame:
             self.__updateScores(playerName)
             self.__saveScores()
         
-        self.__displayTopScores()
+        self.displayTopScores()
             
 
     def __getInput(self):
@@ -70,7 +87,7 @@ class SnakeGame:
                 self.__snake.setDirection(Direction.RIGHT)
             elif keyboard.is_pressed('esc'):
                 self.__exit=True
-            sleep(0.01)
+            sleep(0.001)
 
     def __showBoard(self):
         move_cursor(0,0)
@@ -89,9 +106,9 @@ class SnakeGame:
             board += "|"
             for x in range(self.__size[1]):
                 if [y,x] == self.__fruit.getPosition():
-                    board += "* "
+                    board += Fore.YELLOW+"* "+Fore.WHITE
                 elif [y,x] in self.__snake.getPosition():
-                    board += "o "
+                    board += Fore.GREEN+"o "+Fore.WHITE
                 else:
                     board += "  "
             board += "|\n"
@@ -136,7 +153,7 @@ class SnakeGame:
 
     def __gameOver(self):
         os.system("cls")
-        print("======GAME OVER!======\n\n")
+        print(Fore.RED+"======GAME OVER!======\n\n"+Fore.WHITE)
         print("   Difficulty: "+self.__difficulty.name)
         print("   Score: "+str(self.__score)+"\n\n")
         os.system("pause")
@@ -146,6 +163,8 @@ class SnakeGame:
         if os.path.isfile("data/score"+self.__difficulty.name+".json"):
             with open("data/score"+self.__difficulty.name+".json", "r") as jsonScores:
                 self.__topScore = json.load(jsonScores)
+        else:
+            self.__topScore = []
 
     def __saveScores(self):
          with open("data/score"+self.__difficulty.name+".json", "w") as scoresFile:
@@ -159,7 +178,7 @@ class SnakeGame:
             return True
         
         for score in self.__topScore:
-            if score["Score"]<=self.__score:
+            if (score["Score"]<=self.__score) and (score is not self.__topScore[-1]):
                 return True
         return False
 
@@ -170,11 +189,11 @@ class SnakeGame:
         while len(self.__topScore)>10:
             self.__topScore.pop()
 
-    def __displayTopScores(self):
+    def displayTopScores(self):
         os.system("cls")
         i=1
 
-        print("======"+self.__difficulty.name+" Top 10======\n")
+        print(Fore.YELLOW+"======"+self.__difficulty.name+" Top 10======\n"+Fore.WHITE)
         for score in self.__topScore:
             print(str(i)+". " + score["Name"] + "    " + str(score["Score"]))
             i+=1
