@@ -1,14 +1,11 @@
 from time import sleep
-import threading
 import os
-import sys
 import keyboard
 
 class Menu(object):
     def __init__(self, name):
         self.__name = name
         self.__actions = []
-        self.__selected = 1
 
     def addAction(self, action):
         self.__actions.append(action)
@@ -26,7 +23,8 @@ class Menu(object):
 
     def call(self):
         os.system("cls")
-
+        self.__selected = 1
+        
         self.show()
         while self.__getInput():
             self.show()

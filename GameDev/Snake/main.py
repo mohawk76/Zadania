@@ -15,6 +15,9 @@ game = SnakeGame()
 main = Menu("Main Menu")
 main.addAction(Action("Start game", game.start))
 
+multi = Menu("Multiplayer")
+main.addAction(multi)
+
 options = Menu("Options")
 main.addAction(options)
 

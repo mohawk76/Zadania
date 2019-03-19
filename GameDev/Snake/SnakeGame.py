@@ -58,7 +58,7 @@ class SnakeGame:
         inputThread = threading.Thread(target=self.__getInput)
         inputThread.start()
 
-        while not self.__exit:
+        while not self.__exit and not self.__isWin():
             self.__snake.move()
             self.__detectCollision()
             self.__showBoard()
@@ -158,6 +158,9 @@ class SnakeGame:
         print("   Score: "+str(self.__score)+"\n\n")
         os.system("pause")
         os.system("cls")
+
+    def __isWin(self):
+        return self.__snake.getLength()==(self.__size[0]*self.__size[1])
 
     def __loadScores(self):
         if os.path.isfile("data/score"+self.__difficulty.name+".json"):
