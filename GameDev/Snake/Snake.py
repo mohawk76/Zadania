@@ -1,10 +1,12 @@
 from enum import Enum
 
+
 class Direction(Enum):
     UP = 1
     DOWN = 2
     LEFT = 3
     RIGHT = 4
+
 
 class Snake(object):
     def __init__(self, position):
@@ -12,11 +14,11 @@ class Snake(object):
         self.__speed = 3
         self.__direction = Direction.RIGHT
         self.__directionChanged = False
-        x=position[1]
-        y=position[0]
+        x = position[1]
+        y = position[0]
 
-        self.__body = [SnakeBody([y,x]), SnakeBody([y,x-1]), SnakeBody([y,x-2])]
-
+        self.__body = [SnakeBody([y, x]), SnakeBody(
+            [y, x-1]), SnakeBody([y, x-2])]
 
     def getDirection(self):
         return self.__direction
@@ -47,24 +49,25 @@ class Snake(object):
         self.__directionChanged = False
         nextPos = self.__body[0].getPosition()
         for part in self.__body:
-            #głowa
+            # głowa
             if part == self.__body[0]:
                 coords = part.getPosition()
 
-                if self.__direction==Direction.UP:
-                    coords[0]-=1
-                elif self.__direction==Direction.DOWN:
+                if self.__direction == Direction.UP:
+                    coords[0] -= 1
+                elif self.__direction == Direction.DOWN:
                     coords[0] += 1
-                elif self.__direction==Direction.LEFT:
+                elif self.__direction == Direction.LEFT:
                     coords[1] -= 1
-                elif self.__direction==Direction.RIGHT:
+                elif self.__direction == Direction.RIGHT:
                     coords[1] += 1
                 part.setPosition(coords)
-            #reszta elementów ciała
+            # reszta elementów ciała
             else:
                 temp = part.getPosition()
                 part.setPosition(nextPos)
                 nextPos = temp
+
 
 class SnakeBody(object):
     def __init__(self, position):

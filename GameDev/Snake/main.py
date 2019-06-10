@@ -1,30 +1,34 @@
 from SnakeGame import SnakeGame, Difficulty
-from Menu import Menu, Action
+from Menu import VerticalMenu, Action, selectVerticalMenu
 import colorama
 
-def displayHighScore(difficulty):
-    prev = game.getDifficulty()
-    game.setDifficulty(difficulty)
-    game.displayTopScores()
-    game.setDifficulty(prev)
 
 colorama.init()
 
 game = SnakeGame()
 
-main = Menu("Main Menu")
+main = VerticalMenu("Main Menu")
 main.addAction(Action("Start game", game.start))
 
-multi = Menu("Multiplayer")
+multi = VerticalMenu("Multiplayer")
 main.addAction(multi)
 
-options = Menu("Options")
+
+options = VerticalMenu("Options")
+difficultySelect = selectVerticalMenu("Difficulty")
+
+difficultySelect.addAction(Action("EASY", game.setDifficulty, Difficulty.EASY))
+difficultySelect.addAction(Action("NORMAL", game.setDifficulty, Difficulty.NORMAL))
+difficultySelect.addAction(Action("HARD", game.setDifficulty, Difficulty.HARD))
+difficultySelect.setSelectedItem(game.getDifficulty().name)
+
+options.addAction(difficultySelect)
 main.addAction(options)
 
-highScore = Menu("HighScore")
-highScore.addAction(Action("EASY", displayHighScore, Difficulty.EASY))
-highScore.addAction(Action("NORMAL", displayHighScore, Difficulty.NORMAL))
-highScore.addAction(Action("HARD", displayHighScore, Difficulty.HARD))
+highScore = VerticalMenu("HighScore")
+highScore.addAction(Action("EASY", game.displayHighScore, Difficulty.EASY))
+highScore.addAction(Action("NORMAL", game.displayHighScore, Difficulty.NORMAL))
+highScore.addAction(Action("HARD", game.displayHighScore, Difficulty.HARD))
 main.addAction(highScore)
 
 main.call()
