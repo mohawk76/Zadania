@@ -1,7 +1,7 @@
 from time import sleep
 from abc import ABC, abstractmethod
+from keyboardInput import keyboardInput
 import os
-import keyboard
 
 
 class Controls(ABC):
@@ -53,6 +53,7 @@ class Menu(Controls):
 class VerticalMenu(Menu):
     def __init__(self, name):
         super().__init__(name)
+        self._continueAfterCall = True
 
     def show(self):
         os.system("cls")
@@ -76,19 +77,19 @@ class VerticalMenu(Menu):
 
     def _getInput(self):
         while True:
-            if keyboard.is_pressed('down'):
+            if keyboardInput.isHeldByName('down'):
                 if self._selected < len(self._actions):
                     self._selected += 1
                     return True
-            elif keyboard.is_pressed('up'):
+            elif keyboardInput.isHeldByName('up'):
                 if self._selected > 1:
                     self._selected -= 1
                     return True
-            elif keyboard.is_pressed('enter'):
+            elif keyboardInput.isClickedByName('enter'):
                 if len(self._actions) > 0:
                     self._actions[self._selected-1].call()
-                return True
-            elif keyboard.is_pressed('esc'):
+                return self._continueAfterCall
+            elif keyboardInput.isClickedByName('esc'):
                 return False
             sleep(0.001)
 
@@ -96,6 +97,7 @@ class VerticalMenu(Menu):
 class selectVerticalMenu(VerticalMenu):
     def __init__(self, name):
         super().__init__(name)
+        self._continueAfterCall = False
 
     def getName(self):
         if(self._actions):
@@ -113,46 +115,40 @@ class selectVerticalMenu(VerticalMenu):
     def getSelectedItem(self):
         return self._actions[self._selected-1]
 
-    #TODO Wykombinować jak wykorzystać kod metody z klasy rodzica, by nie powielać kodu
-    def _getInput(self):
-        while True:
-            if keyboard.is_pressed('down'):
-                if self._selected < len(self._actions):
-                    self._selected += 1
-                    return True
-            elif keyboard.is_pressed('up'):
-                if self._selected > 1:
-                    self._selected -= 1
-                    return True
-            elif keyboard.is_pressed('enter'):
-                if len(self._actions) > 0:
-                    self._actions[self._selected-1].call()
-                return False
-            elif keyboard.is_pressed('esc'):
-                return False
-            sleep(0.001)
-
-
 class Action(Controls):
     def __init__(self, name, function, param=None):
         super().__init__(name)
-        self.__function = function
-        self.__param = param
+        self._function = function
+        self._param = param
 
     def call(self):
-        if self.__param is not None:
-            self.__function(self.__param)
+        if self._param is not None:
+            self._function(self._param)
         else:
-            self.__function()
+            self._function()
 
     def setFunction(self, function):
-        self.__function = function
+        self._function = function
 
     def getFunction(self):
-        return self.__function
+        return self._function
 
     def setParam(self, param):
-        self.__param = param
+        self._param = param
 
     def getParam(self):
-        return self.__param
+        return self._param
+
+class switchBtn(Action):
+    def __init__(self, name, checkFunction, changeFunction):
+        super().__init__(name, changeFunction)
+        self.__checkFunction = checkFunction
+    
+    def __isActive(self):
+        if self.__checkFunction():
+            return "ON"
+        else:
+            return "OFF"
+
+    def getName(self):
+        return "{}: {}".format(self._name, self.__isActive())

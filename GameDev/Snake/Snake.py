@@ -1,12 +1,5 @@
-from enum import Enum
-
-
-class Direction(Enum):
-    UP = 1
-    DOWN = 2
-    LEFT = 3
-    RIGHT = 4
-
+from Direction import Direction
+from gameObject import gameObject
 
 class Snake(object):
     def __init__(self, position):
@@ -17,8 +10,8 @@ class Snake(object):
         x = position[1]
         y = position[0]
 
-        self.__body = [SnakeBody([y, x]), SnakeBody(
-            [y, x-1]), SnakeBody([y, x-2])]
+        self.__body = [gameObject([y, x]), gameObject(
+            [y, x-1]), gameObject([y, x-2])]
 
     def getDirection(self):
         return self.__direction
@@ -36,7 +29,7 @@ class Snake(object):
 
     def incLength(self):
         self.__length += 1
-        self.__body.append(SnakeBody(self.__body[-1].getPosition()))
+        self.__body.append(gameObject(self.__body[-1].getPosition()))
 
     def incSpeed(self):
         if self.__speed < 15:
@@ -68,15 +61,3 @@ class Snake(object):
                 part.setPosition(nextPos)
                 nextPos = temp
 
-
-class SnakeBody(object):
-    def __init__(self, position):
-        self.__x = position[1]
-        self.__y = position[0]
-
-    def getPosition(self):
-        return [self.__y, self.__x]
-
-    def setPosition(self, position):
-        self.__x = position[1]
-        self.__y = position[0]

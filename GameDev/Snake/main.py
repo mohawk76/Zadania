@@ -1,9 +1,10 @@
 from SnakeGame import SnakeGame, Difficulty
-from Menu import VerticalMenu, Action, selectVerticalMenu
+from Menu import VerticalMenu, Action, selectVerticalMenu, switchBtn
 import colorama
-
+from keyboardInput import keyboardInput
 
 colorama.init()
+keyboardInput.initialize()
 
 game = SnakeGame()
 
@@ -15,6 +16,7 @@ main.addAction(multi)
 
 
 options = VerticalMenu("Options")
+
 difficultySelect = selectVerticalMenu("Difficulty")
 
 difficultySelect.addAction(Action("EASY", game.setDifficulty, Difficulty.EASY))
@@ -22,7 +24,14 @@ difficultySelect.addAction(Action("NORMAL", game.setDifficulty, Difficulty.NORMA
 difficultySelect.addAction(Action("HARD", game.setDifficulty, Difficulty.HARD))
 difficultySelect.setSelectedItem(game.getDifficulty().name)
 
-options.addAction(difficultySelect)
+options.addAction(difficultySelect) 
+
+soundSwitch = switchBtn("Sound", game.isSoundOn, game.toogleSound)
+options.addAction(soundSwitch)
+
+musicSwitch = switchBtn("Music", game.isMusicOn, game.toogleMusic)
+options.addAction(musicSwitch)
+
 main.addAction(options)
 
 highScore = VerticalMenu("HighScore")
@@ -32,3 +41,5 @@ highScore.addAction(Action("HARD", game.displayHighScore, Difficulty.HARD))
 main.addAction(highScore)
 
 main.call()
+
+keyboardInput.unhook()

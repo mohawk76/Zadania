@@ -1,27 +1,20 @@
-from Snake import Snake, Direction
+from Snake import Snake
+from Direction import Direction
+from keyboardInput import keyboardInput
+from AudioMenager import AudioMenager
 from TerminalFormat import move_cursor
+from gameObject import gameObject
+from Difficulty import Difficulty
 from time import sleep
 from colorama import Fore
-from enum import Enum
+from keyboard import key_to_scan_codes
 import random
 import threading
 import os
 import json
-import keyboard
 
 def getScoresKey(e):
     return e["Score"]
-
-
-class Difficulty(Enum):
-    EASY = 1
-    NORMAL = 2
-    HARD = 3
-    Custom = 4
-
-    def __int__(self):
-        return self.value
-
 
 class SnakeGame:
     def __init__(self):
@@ -30,6 +23,19 @@ class SnakeGame:
         self.__difficulty = Difficulty.NORMAL
         self.__topScore = []
         self.__loadScores()
+
+        self.__audioMenager = AudioMenager()
+        self.__audioMenager.loadSoundFromDirectory('sounds')
+        self.__audioMenager.setVolume("gameMusic", 0.0001)
+        self.__audioMenager.toggleRepeat("gameMusic")
+        
+        #self.__audioMenager.displaySounds()
+
+        self.__soundON = True
+        self.__musicON = True
+
+        if self.__musicON:
+            self.__audioMenager.playSound('gameMusic')
 
     def getBoardSize(self):
         return self.__size
@@ -44,11 +50,35 @@ class SnakeGame:
         self.__difficulty = difficulty
         self.__loadScores()
 
+    def isSoundOn(self):
+        return self.__soundON
+    
+    def toogleSound(self):
+        self.__soundON = not self.__soundON
+
+    def isMusicOn(self):
+        return self.__musicON
+    
+    def toogleMusic(self):
+        self.__musicON = not self.__musicON
+        if self.__musicON:
+            self.__audioMenager.playSound('gameMusic')
+        else:
+            self.__audioMenager.stopSound('gameMusic')
+
+
     def start(self):
         self.__snake = Snake(self.__getCenterCoord())
-        self.__fruit = fruit([-1, -1])
+        self.__fruit = gameObject([-1, -1])
         self.__exit = False
         self.__score = 0
+
+        if self.__difficulty == Difficulty.EASY:
+            self.setBoardSize(10,10)
+        elif self.__difficulty == Difficulty.NORMAL:
+            self.setBoardSize(20,20)
+        elif self.__difficulty == Difficulty.HARD:
+            self.setBoardSize(20,20)
 
         os.system("cls")
 
@@ -59,13 +89,17 @@ class SnakeGame:
     def __gameLoop(self):
         inputThread = threading.Thread(target=self.__getInput)
         inputThread.start()
-
+        #self.__getInput()
         while not self.__exit and not self.__isWin():
             self.__snake.move()
             self.__detectCollision()
             self.__showBoard()
             sleep(1/self.__snake.getSpeed())
-            
+
+        if self.__soundON:
+            self.__audioMenager.playSound('dead')
+        
+        self.__dieAnimation()
         self.__gameOver()
 
         playerName = ""
@@ -76,19 +110,27 @@ class SnakeGame:
 
         self.__displayTopScores()
 
+        self.__audioMenager.stopSound('dead')
+
     def __getInput(self):
+        up = key_to_scan_codes('up')[0]
+        down = key_to_scan_codes('down')[0]
+        left = key_to_scan_codes('left')[0]
+        right = key_to_scan_codes('right')[0]
+        esc = key_to_scan_codes('esc')[0]
+
         while not self.__exit:
-            if keyboard.is_pressed('up') and self.__snake.getDirection() != Direction.DOWN:
+            if keyboardInput.isPressed(up) and self.__snake.getDirection() != Direction.DOWN:
                 self.__snake.setDirection(Direction.UP)
-            elif keyboard.is_pressed('down') and self.__snake.getDirection() != Direction.UP:
+            elif keyboardInput.isPressed(down) and self.__snake.getDirection() != Direction.UP:
                 self.__snake.setDirection(Direction.DOWN)
-            elif keyboard.is_pressed('left') and self.__snake.getDirection() != Direction.RIGHT:
+            elif keyboardInput.isPressed(left) and self.__snake.getDirection() != Direction.RIGHT:
                 self.__snake.setDirection(Direction.LEFT)
-            elif keyboard.is_pressed('right') and self.__snake.getDirection() != Direction.LEFT:
+            elif keyboardInput.isPressed(right) and self.__snake.getDirection() != Direction.LEFT:
                 self.__snake.setDirection(Direction.RIGHT)
-            elif keyboard.is_pressed('esc'):
+            elif keyboardInput.isClicked(esc):
                 self.__exit = True
-            sleep(0.001)
+            sleep(0.0001)
 
     def __showBoard(self):
         move_cursor(0, 0)
@@ -109,7 +151,7 @@ class SnakeGame:
                 if [y, x] == self.__fruit.getPosition():
                     board += Fore.YELLOW+"* "+Fore.WHITE
                 elif [y, x] in self.__snake.getPosition():
-                    board += Fore.GREEN+"o "+Fore.WHITE
+                    board += Fore.GREEN + "o "+Fore.WHITE
                 else:
                     board += "  "
             board += "|\n"
@@ -123,6 +165,16 @@ class SnakeGame:
                 board += "=="
         board += "\n"
         print(board)
+
+    def __dieAnimation(self):
+        y,x = self.__snake.getPosition()[0]
+        x *= 2
+        x+=2
+        y+=2
+        move_cursor(x,y)
+        print(Fore.RED+"#"+Fore.WHITE, end="")
+        sleep(2)
+
 
     def __getRandomCoord(self):
         return [random.randint(0, self.__size[0]-1), random.randint(0, self.__size[1]-1)]
@@ -140,17 +192,23 @@ class SnakeGame:
 
     def __detectCollision(self):
         if self.__snake.getPosition()[0] == self.__fruit.getPosition():
-            self.__score += 10*int(self.__difficulty)
-            self.__snake.incLength()
-            self.__generateFruit()
-            if self.__difficulty is Difficulty.NORMAL and self.__snake.getSpeed() < 9:
-                self.__snake.incSpeed()
+           self.__eatFruit()
         elif self.__snake.getPosition()[0] in self.__snake.getPosition()[1:]:
             self.__exit = True
         elif self.__snake.getPosition()[0][0] < 0 or self.__snake.getPosition()[0][0] > self.__size[0]-1:
             self.__exit = True
         elif self.__snake.getPosition()[0][1] < 0 or self.__snake.getPosition()[0][1] > self.__size[1]-1:
             self.__exit = True
+
+    def __eatFruit(self):
+        if self.__soundON:
+            self.__audioMenager.playSound('coin')
+
+        self.__score += 10*int(self.__difficulty)
+        self.__snake.incLength()
+        self.__generateFruit()
+        if self.__difficulty is Difficulty.NORMAL and self.__snake.getSpeed() < 9:
+            self.__snake.incSpeed()
 
     def __gameOver(self):
         os.system("cls")
@@ -210,14 +268,3 @@ class SnakeGame:
         self.setDifficulty(difficulty)
         self.__displayTopScores()
         self.setDifficulty(prev)
-
-
-class fruit(object):
-    def __init__(self, position):
-        self.__position = position
-
-    def getPosition(self):
-        return self.__position
-
-    def setPosition(self, position):
-        self.__position = position
