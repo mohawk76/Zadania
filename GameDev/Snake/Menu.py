@@ -1,7 +1,9 @@
-from time import sleep
-from abc import ABC, abstractmethod
-from keyboardInput import keyboardInput
 import os
+from abc import ABC, abstractmethod
+from time import sleep
+
+from keyboardInput import keyboardInput
+from TerminalFormat import repeatNChar, space
 
 
 class Controls(ABC):
@@ -41,6 +43,12 @@ class Menu(Controls):
             self.show()
             sleep(0.2)
 
+    def _getHeader(self, size:int)->str:
+        return repeatNChar(size, '=') + self._name + repeatNChar(size, '=') + "\n\n"
+
+    def _getFooter(self, size:int)->str:
+        return "\n" + repeatNChar(size, '=') + repeatNChar(len(self._name), '=') + repeatNChar(size, '=') 
+
     @abstractmethod
     def show(self):
         pass
@@ -57,7 +65,7 @@ class VerticalMenu(Menu):
 
     def show(self):
         os.system("cls")
-        menu = "======"+self._name+"======\n\n"
+        menu = self._getHeader(6)
         index = 1
 
         for action in self._actions:
@@ -68,7 +76,7 @@ class VerticalMenu(Menu):
                 menu += "\n"
             index += 1
 
-        menu += "\n============"
+        menu += self._getFooter(6)
         print(menu)
 
     def call(self):
@@ -95,6 +103,73 @@ class VerticalMenu(Menu):
 
 
 class selectVerticalMenu(VerticalMenu):
+    def __init__(self, name):
+        super().__init__(name)
+        self._continueAfterCall = False
+
+    def getName(self):
+        if(self._actions):
+            return self._name + ": " + self._actions[self._selected-1].getName()
+        else:
+            return self._name
+
+    def setSelectedItem(self, actionName):
+        index = 1
+        for item in self._actions:
+            if item.getName() == actionName:
+                self._selected = index
+            index += 1
+
+    def getSelectedItem(self):
+        return self._actions[self._selected-1]
+
+class HorizontalMenu(Menu):
+    def __init__(self, name):
+        super().__init__(name)
+        self._continueAfterCall = True
+
+    def show(self):
+        os.system("cls")
+        menu = self._getHeader(7)
+        index = 1
+
+        for action in self._actions:
+            if index == self._selected:
+                menu += space(1)+">"+space(1)
+            else:
+                 menu += space(3)
+
+            menu += action.getName()
+            index += 1
+
+        menu += "\n"
+        menu += self._getFooter(7)
+        print(menu)
+
+    def call(self):
+        self._selected = 1
+        super().call()
+
+    def _getInput(self):
+        while True:
+            if keyboardInput.isHeldByName('right'):
+                if self._selected < len(self._actions):
+                    self._selected += 1
+                    return True
+            elif keyboardInput.isHeldByName('left'):
+                if self._selected > 1:
+                    self._selected -= 1
+                    return True
+            elif keyboardInput.isClickedByName('enter'):
+                if len(self._actions) > 0:
+                    self._actions[self._selected-1].call()
+                return self._continueAfterCall
+            elif keyboardInput.isClickedByName('esc'):
+                return False
+            sleep(0.001)
+
+
+class selectHorizontalMenu(HorizontalMenu):
     def __init__(self, name):
         super().__init__(name)
         self._continueAfterCall = False

@@ -1,6 +1,7 @@
 from Direction import Direction
 from gameObject import gameObject
 
+
 class Snake(object):
     def __init__(self, position):
         self.__length = 3
@@ -60,4 +61,3 @@ class Snake(object):
                 temp = part.getPosition()
                 part.setPosition(nextPos)
                 nextPos = temp
-

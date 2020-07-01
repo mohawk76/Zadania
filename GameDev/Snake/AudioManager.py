@@ -1,9 +1,11 @@
-from pyglet import media
 import io
 from os import listdir
 from os.path import isfile, join
 
-class AudioMenager:
+from pyglet import media
+
+
+class AudioManager:
     def __init__(self):
         self.__sounds = []
         
@@ -11,14 +13,14 @@ class AudioMenager:
 
     @staticmethod
     def isAudioFile(file):
-        for filetype in AudioMenager.audioTypes:
+        for filetype in AudioManager.audioTypes:
             if(filetype in file):
                 return True
         return False
 
     def loadSoundFromDirectory(self, path):
         for f in listdir(path):
-            if isfile(join(path, f)) and AudioMenager.isAudioFile(f):
+            if isfile(join(path, f)) and AudioManager.isAudioFile(f):
                 self.loadSound(f.split('.')[0], join(path, f))
     
     def loadSound(self, name, path):
@@ -94,7 +96,11 @@ class Sound:
         return self.name == other
     
     def setVolume(self, volume):
+        if self.__error:
+           return
         self.__sound.volume = volume
 
     def toggleRepeat(self):
+        if self.__error:
+           return
         self.__looper.loop = not self.__looper.loop

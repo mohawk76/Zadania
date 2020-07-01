@@ -1,6 +1,7 @@
 import keyboard
-import sys
-import os
+
+from SystemFunctions import hasFocus
+
 
 class keyState:
     def __init__(self):
@@ -19,27 +20,8 @@ class keyboardInput:
         keyboard.hook(keyboardInput.__hookInput)
 
     @staticmethod
-    def __hasFocus():
-        if sys.platform in ['linux', 'linux2']:
-            import wnck
-            screen = wnck.screen_get_default()
-            screen.force_update()
-            window = screen.get_active_window()
-
-            if window is not None:
-                return window.get_pid() == os.getppid()
-
-            return False            
-        elif sys.platform in ['Windows', 'win32', 'cygwin']:
-            import win32gui
-            import win32process
-            return win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())[1] == os.getppid()
-        else:
-            return True
-
-    @staticmethod
     def __hookInput(keyEvent : keyboard.KeyboardEvent):
-        if not keyboardInput.__hasFocus():
+        if not hasFocus():
             return
         
         keyboardInput.__keyList[keyEvent.scan_code].bPressed = False
@@ -88,6 +70,14 @@ class keyboardInput:
             keyboardInput.__keyList[scan_code].bPressed = False
             return True
         return False
+
+    @staticmethod
+    def isActiveByName(name:str) -> bool:
+        return keyboardInput.isActive(keyboard.key_to_scan_codes(name)[0])
+
+    @staticmethod
+    def isActive(scan_code:int) -> bool:
+        return keyboardInput.__keyList[scan_code].bPressed or keyboardInput.__keyList[scan_code].bHeld
 
     @staticmethod
     def unhook():
